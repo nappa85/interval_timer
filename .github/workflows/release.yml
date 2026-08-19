@@ -78,6 +78,7 @@ jobs:
 
           docker cp . interval-timer-build:/home/mersdk/interval_timer
           docker exec -u root interval-timer-build chown -R mersdk:mersdk /home/mersdk/interval_timer
+          docker exec interval-timer-build rm -fr /home/mersdk/interval_timer/.git
           docker exec -w /home/mersdk/interval_timer interval-timer-build \
             mb2 --target SailfishOS-5.2.0.15-aarch64 build
           mkdir -p RPMS
