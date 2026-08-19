@@ -1,0 +1,118 @@
+name: Build & publish RPM
+
+# Builds the app RPM (harbour-interval-timer) in the Sailfish Platform SDK
+# container exactly as a local mb2 build would, and publishes it:
+#   - on a `v*` tag push  -> attached to the GitHub release for that tag
+#   - on workflow_dispatch -> uploaded as workflow artifacts (no release)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'RPM version to build (e.g. 1.0.0). Leave empty to use the pushed tag.'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rpm-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build RPM
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free disk space for the Sailfish SDK image
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell
+          sudo apt-get clean
+          df -h
+
+      - name: Compute RPM version
+        id: version
+        # The workflow_dispatch input is routed through an env var (not
+        # interpolated straight into the run: script) so its contents are
+        # never re-parsed by the shell - a value like "$(curl ...)" can't
+        # inject commands. It's still strictly validated below before use.
+        env:
+          RELEASE_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "$RELEASE_VERSION" ]; then
+            VER="$RELEASE_VERSION"
+          else
+            VER="${GITHUB_REF_NAME#v}"
+          fi
+          if ! echo "$VER" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "invalid version '$VER' (expected semver like 1.0.0)" >&2
+            exit 1
+          fi
+          echo "version=${VER}" >> "$GITHUB_OUTPUT"
+
+      # Stamp the app version from the tag into the qmake project and the
+      # RPM spec, so the built package always matches the tag being released.
+      - name: Stamp version from the tag
+        run: |
+          sed -i "s/^VERSION =.*/VERSION = ${{ steps.version.outputs.version }}/" harbour-interval-timer.pro
+          sed -i "s/^Version:.*/Version:       ${{ steps.version.outputs.version }}/" rpm/harbour-interval-timer.spec
+          grep '^VERSION =' harbour-interval-timer.pro
+          grep '^Version:' rpm/harbour-interval-timer.spec
+
+      - name: Pull Sailfish Platform SDK
+        run: docker pull coderus/sailfishos-platform-sdk-aarch64
+
+      - name: Build the app RPM in the Sailfish SDK container
+        run: |
+          set -euxo pipefail
+          docker create --name interval-timer-build coderus/sailfishos-platform-sdk-aarch64 sleep infinity
+          docker start interval-timer-build
+          trap 'docker rm -f interval-timer-build >/dev/null 2>&1 || true' EXIT
+
+          docker cp . interval-timer-build:/home/mersdk/interval_timer
+          docker exec -u root interval-timer-build chown -R mersdk:mersdk /home/mersdk/interval_timer
+          docker exec -w /home/mersdk/interval_timer interval-timer-build \
+            mb2 --target SailfishOS-5.2.0.15-aarch64 build
+          mkdir -p RPMS
+          docker cp interval-timer-build:/home/mersdk/interval_timer/RPMS/. RPMS/
+
+      - name: Sanity-check the built RPM
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq rpm >/dev/null
+          expected="${{ steps.version.outputs.version }}"
+          found=0
+          for f in RPMS/*.rpm; do
+            [ -e "$f" ] || continue
+            found=1
+            echo "== $f =="
+            rpm -qip "$f"
+            ver="$(rpm -qp --qf '%{VERSION}' "$f")"
+            arch="$(rpm -qp --qf '%{ARCH}' "$f")"
+            [ "$arch" = "aarch64" ] || { echo "wrong arch '$arch' for $f (expected aarch64)"; exit 1; }
+            [ "$ver" = "$expected" ] || { echo "version '$ver' != expected '$expected' for $f"; exit 1; }
+          done
+          [ "$found" -eq 1 ] || { echo "no RPMs produced"; exit 1; }
+
+      - name: Publish RPM to the tag release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            RPMS/*.rpm
+          generate_release_notes: true
+          make_latest: true
+
+      - name: Upload RPM as workflow artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpm-${{ steps.version.outputs.version }}
+          path: |
+            RPMS/*.rpm

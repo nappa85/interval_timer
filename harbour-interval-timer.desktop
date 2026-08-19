@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+X-Nemo-Application-Type=silica-qt5
+Icon=harbour-interval-timer
+Exec=harbour-interval-timer
+Name=Interval Timer
+Name[en]=Interval Timer
+Comment=Interval training timer
+Comment[en]=Interval training timer
+
+[X-Sailjail]
+Permissions=
+OrganizationName=org.intervaltimer
+ApplicationName=harbour-interval-timer
