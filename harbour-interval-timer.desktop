@@ -9,6 +9,6 @@ Comment=Interval training timer
 Comment[en]=Interval training timer
 
 [X-Sailjail]
-Permissions=
+Permissions=Audio
 OrganizationName=org.intervaltimer
 ApplicationName=harbour-interval-timer

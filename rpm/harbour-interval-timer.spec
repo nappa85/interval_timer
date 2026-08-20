@@ -1,6 +1,6 @@
 Name:       harbour-interval-timer
 Summary:    Interval training timer
-Version:    0.1.1
+Version:    0.1.2
 Release:    1
 License:    BSD-3-Clause
 URL:        https://github.com/nappa85/interval_timer
@@ -9,6 +9,8 @@ Requires:   sailfishsilica-qt5 >= 0.10.9
 Requires:   qt5-qtcore
 Requires:   qt5-qtdeclarative
 Requires:   qt5-qtmultimedia
+Requires:   qt5-qtmultimedia-plugin-mediaservice-gstmediaplayer
+Requires:   qt5-qtmultimedia-plugin-audio-pulseaudio
 Requires:   nemo-qml-plugin-configuration-qt5
 Requires:   nemo-qml-plugin-notifications-qt5
 BuildRequires:  pkgconfig(sailfishapp) >= 1.0.2

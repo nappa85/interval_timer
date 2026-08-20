@@ -100,7 +100,7 @@ Page
         var s = Math.ceil(currentMs / 1000)
         if (s !== lastBeepSecond) {
             lastBeepSecond = s
-            if (s >= 1 && s <= 3)
+            if (phase === "start" || (s >= 1 && s <= 3))
                 beepShort.play()
         }
     }

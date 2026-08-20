@@ -25,20 +25,37 @@ Item
         slider.value = Math.min(slider.maximumValue, Math.max(slider.minimumValue, slider.value + delta))
     }
 
-    IconButton {
+    Item {
         id: minusBtn
         anchors.left: parent.left
         anchors.verticalCenter: parent.top
         anchors.verticalCenterOffset: root.trackCenter
-        icon.source: "image://theme/icon-m-minus"
+        width: Theme.itemSizeMedium
+        height: Theme.itemSizeMedium
         enabled: slider.value > slider.minimumValue
-        onPressed: root.step(-1)
-        onPressAndHold: repeatMinus.start()
-        onReleased: repeatMinus.stop()
-        onCanceled: repeatMinus.stop()
-        onExited: repeatMinus.stop()
-        onEnabledChanged: if (!enabled) repeatMinus.stop()
 
+        Rectangle {
+            anchors.fill: parent
+            radius: height / 2
+            color: minusBtn.enabled ? Theme.rgba(Theme.highlightColor, 0.18) : "transparent"
+            border.width: minusBtn.enabled ? 2 : 0
+            border.color: Theme.rgba(Theme.highlightColor, 0.6)
+        }
+        Label {
+            anchors.centerIn: parent
+            text: "−"
+            font.pixelSize: Theme.fontSizeExtraLarge
+            color: minusBtn.enabled ? Theme.primaryColor : Theme.secondaryColor
+        }
+        MouseArea {
+            anchors.fill: parent
+            onPressed: root.step(-1)
+            onPressAndHold: repeatMinus.start()
+            onReleased: repeatMinus.stop()
+            onCanceled: repeatMinus.stop()
+            onExited: repeatMinus.stop()
+        }
+        onEnabledChanged: if (!enabled) repeatMinus.stop()
         Timer {
             id: repeatMinus
             interval: 180
@@ -51,24 +68,41 @@ Item
         id: slider
         anchors.left: minusBtn.right
         anchors.right: plusBtn.left
-        leftMargin: Theme.paddingLarge * 3
-        rightMargin: Theme.paddingLarge * 3
+        leftMargin: Theme.paddingMedium
+        rightMargin: Theme.paddingMedium
     }
 
-    IconButton {
+    Item {
         id: plusBtn
         anchors.right: parent.right
         anchors.verticalCenter: parent.top
         anchors.verticalCenterOffset: root.trackCenter
-        icon.source: "image://theme/icon-m-plus"
+        width: Theme.itemSizeMedium
+        height: Theme.itemSizeMedium
         enabled: slider.value < slider.maximumValue
-        onPressed: root.step(1)
-        onPressAndHold: repeatPlus.start()
-        onReleased: repeatPlus.stop()
-        onCanceled: repeatPlus.stop()
-        onExited: repeatPlus.stop()
-        onEnabledChanged: if (!enabled) repeatPlus.stop()
 
+        Rectangle {
+            anchors.fill: parent
+            radius: height / 2
+            color: plusBtn.enabled ? Theme.rgba(Theme.highlightColor, 0.18) : "transparent"
+            border.width: plusBtn.enabled ? 2 : 0
+            border.color: Theme.rgba(Theme.highlightColor, 0.6)
+        }
+        Label {
+            anchors.centerIn: parent
+            text: "+"
+            font.pixelSize: Theme.fontSizeExtraLarge
+            color: plusBtn.enabled ? Theme.primaryColor : Theme.secondaryColor
+        }
+        MouseArea {
+            anchors.fill: parent
+            onPressed: root.step(1)
+            onPressAndHold: repeatPlus.start()
+            onReleased: repeatPlus.stop()
+            onCanceled: repeatPlus.stop()
+            onExited: repeatPlus.stop()
+        }
+        onEnabledChanged: if (!enabled) repeatPlus.stop()
         Timer {
             id: repeatPlus
             interval: 180
