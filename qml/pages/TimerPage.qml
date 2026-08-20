@@ -1,11 +1,17 @@
 import QtQuick 2.6
 import QtMultimedia 5.0
 import Sailfish.Silica 1.0
+import Nemo.KeepAlive 1.2
 
 Page
 {
     id: page
     allowedOrientations: Orientation.All
+
+    DisplayBlanking {
+        id: screenKeepAlive
+        preventBlanking: page.running
+    }
 
     property int sets: 8
     property int setDuration: 60
