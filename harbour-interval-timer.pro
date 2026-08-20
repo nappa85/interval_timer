@@ -2,7 +2,7 @@ TARGET = harbour-interval-timer
 
 CONFIG += sailfishapp
 
-VERSION = 1.0.0
+VERSION = 0.1.1
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 SOURCES += \
@@ -15,6 +15,7 @@ DISTFILES += \
     qml/cover/CoverPage.qml \
     qml/pages/SetupPage.qml \
     qml/pages/TimerPage.qml \
+    qml/components/SteppedSlider.qml \
     qml/sounds/beep_short.wav \
     qml/sounds/beep_long.wav \
     qml/sounds/beep_end.wav

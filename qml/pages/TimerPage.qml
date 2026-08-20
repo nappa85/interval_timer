@@ -12,8 +12,8 @@ Page
     property int restDuration: 30
 
     property int startCountdownMs: 5000
-    property int deadline: 0
-    property int currentMs: 0
+    property double deadline: 0
+    property double currentMs: 0
     property int lastBeepSecond: -1
     property string phase: "start"          // start | set | rest | done
     property int currentSet: 0

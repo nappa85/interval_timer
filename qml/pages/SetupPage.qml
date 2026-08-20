@@ -2,6 +2,7 @@ import QtQuick 2.6
 import Sailfish.Silica 1.0
 import Nemo.Configuration 1.0
 import Nemo.Notifications 1.0
+import "../components"
 
 Page
 {
@@ -119,7 +120,7 @@ Page
 
             SectionHeader { text: "Workout" }
 
-            Slider {
+            SteppedSlider {
                 id: setsSlider
                 width: parent.width
                 minimumValue: 1
@@ -131,7 +132,7 @@ Page
                 onValueChanged: page.sets = value
             }
 
-            Slider {
+            SteppedSlider {
                 id: setSlider
                 width: parent.width
                 minimumValue: 1
@@ -143,7 +144,7 @@ Page
                 onValueChanged: page.setDuration = value
             }
 
-            Slider {
+            SteppedSlider {
                 id: restSlider
                 width: parent.width
                 minimumValue: 0

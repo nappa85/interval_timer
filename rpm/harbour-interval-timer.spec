@@ -1,6 +1,6 @@
 Name:       harbour-interval-timer
 Summary:    Interval training timer
-Version:    0.1.0
+Version:    0.1.1
 Release:    1
 License:    BSD-3-Clause
 URL:        https://github.com/nappa85/interval_timer
