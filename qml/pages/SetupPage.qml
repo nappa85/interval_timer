@@ -12,6 +12,7 @@ Page
     ConfigurationGroup {
         id: settings
         path: "/apps/harbour-interval-timer/settings"
+        synchronous: true
     }
 
     Notification {
@@ -22,8 +23,19 @@ Page
     property int sets: 8
     property int setDuration: 60
     property int restDuration: 30
+    property bool initialized: false
+
+    Component.onCompleted: {
+        // Read defaults after the configuration group and sliders are initialized.
+        sets = settings.value("default_sets", 8)
+        setDuration = settings.value("default_setDuration", 60)
+        restDuration = settings.value("default_restDuration", 30)
+        initialized = true
+    }
 
     property int startCountdownMs: 5000
+
+    property int presetCount: 0
 
     function fmt(seconds) {
         var m = Math.floor(seconds / 60)
@@ -44,10 +56,6 @@ Page
 
     function savePresetList(list) {
         settings.setValue("presets", JSON.stringify(list))
-    }
-
-    function presetCount() {
-        return loadPresetList().length
     }
 
     function savePreset(name) {
@@ -73,9 +81,16 @@ Page
         refreshPresetList()
     }
 
+    function saveDefault() {
+        settings.setValue("default_sets", sets)
+        settings.setValue("default_setDuration", setDuration)
+        settings.setValue("default_restDuration", restDuration)
+    }
+
     function refreshPresetList() {
         presetMenu.clear()
         var list = loadPresetList()
+        presetCount = list.length
         for (var i = 0; i < list.length; ++i) {
             var p = list[i]
             presetMenu.append({ text: p.name + "  -  " + p.sets + "x " + p.setDuration + "/" + p.restDuration + "s" })
@@ -100,13 +115,21 @@ Page
                 onClicked: pageStack.push(savePresetDialog)
             }
             MenuItem {
+                text: "Save as default"
+                onClicked: {
+                    page.saveDefault()
+                    notification.summary = "Saved as default"
+                    notification.publish()
+                }
+            }
+            MenuItem {
                 text: "Load preset"
-                enabled: page.presetCount() > 0
+                enabled: page.presetCount > 0
                 onClicked: pageStack.push(loadPresetDialog)
             }
             MenuItem {
                 text: "Delete preset"
-                enabled: page.presetCount() > 0
+                enabled: page.presetCount > 0
                 onClicked: pageStack.push(deletePresetDialog)
             }
         }
@@ -129,7 +152,7 @@ Page
                 value: page.sets
                 label: "Sets"
                 valueText: value
-                onValueChanged: page.sets = value
+                onValueChanged: if (page.initialized) page.sets = value
             }
 
             SteppedSlider {
@@ -141,7 +164,7 @@ Page
                 value: page.setDuration
                 label: "Set duration (s)"
                 valueText: page.fmt(value)
-                onValueChanged: page.setDuration = value
+                onValueChanged: if (page.initialized) page.setDuration = value
             }
 
             SteppedSlider {
@@ -153,7 +176,7 @@ Page
                 value: page.restDuration
                 label: "Rest duration (s)"
                 valueText: value === 0 ? "none" : page.fmt(value)
-                onValueChanged: page.restDuration = value
+                onValueChanged: if (page.initialized) page.restDuration = value
             }
 
             Label {
